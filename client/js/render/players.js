@@ -94,7 +94,7 @@ class PlayerView {
   }
 
   /** squash on impact (k ~ 0..1) */
-  impact(k) { this.stretchV -= 10 * k; }
+  impact(k) { this.stretchV = Math.max(-9, this.stretchV - 7 * k); }
 
   startFall(ev) {
     this.fallAnim = { t: 0, x: ev.x, y: ev.y, vx: ev.vx, vy: ev.vy, spin: (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 6) };
@@ -127,10 +127,11 @@ class PlayerView {
       if (Math.random() < 0.8) fx.trailSpark(f.x, f.y, -f.vx * 0.2, -f.vy * 0.2 - 40, this.trailColor);
       if (f.t >= 1.25 && !f.flashed) { f.flashed = true; fx.voidFlash(f.x, f.y + 30, this.color); }
       if (this.trail) this.trail.alpha = 0;
+      this.trailInit = false;
       return;
     }
     if (!falling && this.fallAnim && (alive || ghost)) this.fallAnim = null;
-    if (!alive && !ghost) { c.visible = false; this.shadow.visible = false; this.nameC.visible = false; if (this.trail) this.trail.alpha = 0; return; }
+    if (!alive && !ghost) { c.visible = false; this.shadow.visible = false; this.nameC.visible = false; if (this.trail) this.trail.alpha = 0; this.trailInit = false; return; }
 
     c.visible = true; c.alpha = 1; c.scale.set(1);
     this.nameC.visible = true;
@@ -147,7 +148,7 @@ class PlayerView {
     // spring for impact squash
     this.stretchV += (-180 * this.stretch - 14 * this.stretchV) * dt;
     this.stretch += this.stretchV * dt;
-    const st = Math.min(0.28, sp / 3200) + this.stretch * 0.25;
+    const st = Math.max(-0.22, Math.min(0.3, Math.min(0.2, sp / 4000) + this.stretch * 0.18));
     const sx = Math.max(0.6, 1 + st), sy = 1 / sx;
     if (sp > 20) this.squash.rotation = Math.atan2(vy, vx);
     this.squash.scale.set(sx, sy);
@@ -247,7 +248,7 @@ class PlayerView {
     if (this.trail) {
       const pts = this.pts;
       const moved = Math.hypot(x - this.lastX, y - this.lastY);
-      if (moved > 200) { for (const q of pts) q.set(x, y); }
+      if (!this.trailInit || moved > 120) { for (const q of pts) q.set(x, y); this.trailInit = true; }
       else {
         // shift points toward the head; the head follows the disc
         for (let i = 0; i < pts.length - 1; i++) {
