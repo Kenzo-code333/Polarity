@@ -385,3 +385,8 @@ body.touch-on .controls-hint { display: none; }
   body.touch-on .hud-bottom { position: absolute; left: 0; right: 0; top: 118px; padding: 0; }
   body.touch-on .meters { transform: scale(0.8); }
 }
+
+/* ---------- offline edition (artifact build) ---------- */
+.offline-note { display: none; text-align: center; color: var(--muted); font-size: 14px; }
+html.offline .offline-note { display: block; }
+html.offline .join-row, html.offline .share { display: none; }

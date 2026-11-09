@@ -96,7 +96,8 @@ export class NetSession extends BaseSession {
     if (this.late.length > 30) this.late.shift();
     const avg = this.late.reduce((a, b) => a + b, 0) / this.late.length;
     const dev = Math.sqrt(this.late.reduce((a, b) => a + (b - avg) ** 2, 0) / this.late.length);
-    const target = Math.max(0, avg) + 100 + Math.min(80, dev * 1.5);
+    const base = this.net.offline ? 40 : 100; // no network jitter offline
+    const target = Math.max(0, avg) + base + Math.min(80, dev * 1.5);
     this.delay = this.snapCount < 3 ? target : lerp(this.delay, target, 0.05);
     const pnow = performance.now();
     if (this.lastSnapAt) { this.snapIntervals.push(pnow - this.lastSnapAt); if (this.snapIntervals.length > 40) this.snapIntervals.shift(); }

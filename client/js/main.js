@@ -102,7 +102,7 @@ async function boot() {
   });
 
   const params = new URLSearchParams(location.search);
-  const code = params.get('room');
+  const code = window.PolarityLocalNet ? null : params.get('room');
   if (code) {
     // opening an invite link joins directly
     if (!settings.name) { settings.name = 'Magnet' + Math.floor(100 + Math.random() * 900); save(); $('nameInput').value = settings.name; }
@@ -118,7 +118,7 @@ async function boot() {
 // ---------------------------------------------------------------------------
 function ensureNet() {
   if (app.net) return app.net;
-  const net = app.net = new Net();
+  const net = app.net = window.PolarityLocalNet ? new window.PolarityLocalNet() : new Net();
   net.on('connect', () => {
     if (app.pendingJoin) { const f = app.pendingJoin; app.pendingJoin = null; f(); }
     else if (app.room && app.room.code) {
@@ -130,7 +130,7 @@ function ensureNet() {
   net.on('disconnect', () => { if (app.room) ui.toast('Connection lost — reconnecting…', true, 5000); });
   net.on('joined', (d) => {
     app.selfId = d.you;
-    history.replaceState(null, '', d.practice ? '/' : `/?room=${d.code}`);
+    if (!net.offline) { try { history.replaceState(null, '', d.practice ? '/' : `/?room=${d.code}`); } catch (e) { /* sandboxed */ } }
     if (!d.practice) ui.toast(`Joined room ${d.code}`);
   });
   net.on('room', onRoom);
@@ -154,7 +154,7 @@ function leaveRoom() {
   if (app.net) app.net.send('leave');
   app.room = null;
   endSession();
-  history.replaceState(null, '', '/');
+  if (!window.PolarityLocalNet) { try { history.replaceState(null, '', '/'); } catch (e) { /* sandboxed */ } }
   goHome();
 }
 
